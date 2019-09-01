@@ -8,39 +8,24 @@
 
 #include <iostream>
 #include <vector>
-#include <numeric>
 #include <fstream>
-#include <iterator>
-#include <stdexcept>
 
 using namespace std;
 
 struct Vertex {
-    int label;//identifier for Vertex
     bool explored;
     int finishingTime;
     int leader;
     int SSC;//strongly connected compentent ID
 };
 
-struct Edge {
-    int label;//identifier for Edge
-    int tail;
-    int head;
-};
-
-struct Graph {
-    vector<Edge> edges;
-    vector<Vertex> vertices;
-};
-
 int t = 0; //global variable to track finishing times (e.g. - number of nodes processed)
 int s = NULL;//global veraible to track the source vertex from which DFS was initaited
+vector<Vertex> vertices(10);
 
-void printEdge(const Edge&);
-void DFS_Loop(Graph&);
-void DFS(Graph&, int i, bool);
-Graph createGraph(fstream&);
+void DFS_Loop(vector<vector<int>>&);
+void DFS(vector<vector<int>>&, size_t, bool);
+vector<vector<int>> createGraph(fstream&);
 
 int main(int argc, const char * argv[]) {
     // insert code here...
@@ -52,57 +37,58 @@ int main(int argc, const char * argv[]) {
         return 9;
     }
     
-    Graph g = createGraph(f);
+    vector<vector<int>> g = createGraph(f);
+    
+    for (int i = 0; i < 10; ++i){
+        vertices[i].explored = false;
+    }
     
     DFS_Loop(g);
     
+    for (int i = 0; i < 10; ++i){
+        cout << "i: " << i << " finishing: " << vertices[i].finishingTime << endl;
+    }
     return 0;
 }
 
-Graph createGraph(fstream& f){
-    int i = 0;
-    int numEdges = 0;
+vector<vector<int>> createGraph(fstream& f){
+    int numVertices = 10;
     int head;
     int tail;
-    Edge edge;
-    Graph g; //structure representing graph
+    
+    vector<vector<int>> g(numVertices);
     
     while (f >> tail >> head) {//read line from file
-        
-        edge = {i, tail, head};//create edge
-        
-        int m = max (head, tail);
-        if (m > numEdges){
-            numEdges = m;
-        }
-        
-        g.edges.push_back(edge);//add edge to vector
-        ++i;
-    }
-    
-    for (int i = 0; i < numEdges; ++i){
-        g.vertices.push_back({i, false, NULL, NULL, NULL});
-    }
+//        g[tail].push_back(head);//create edge
+        g[head].push_back(tail);//create edge
 
+    }
     return g;
 }
 
-void printEdge(const Edge& e) {
-    cout << "edge: " << e.label << "\nhead: " << e.head << "\ntail: " << e.tail << endl;
-}
-
-void DFS_Loop(Graph& g) {
-    for(int i = g.vertices.size(); i >= 1; --i){
-        if (!g.vertices[i].explored){
+void DFS_Loop(vector<vector<int>>& g) {
+    for(size_t i = g.size() - 1; i >= 1; --i){
+        if (!vertices[i].explored){
             s = i;
             DFS(g, i, 1);
         }
     }
 }
 
-void DFS(Graph& g, int i, bool reverse=false){
-    g.vertices[i].explored = true;
-    g.vertices[i].leader = i;
-    
-    
+void DFS(vector<vector<int>>& g, size_t i, bool reverse=false){
+    vertices[i].explored = true;
+    vertices[i].leader = s;
+    for (int j = 0; j < g[i].size(); ++j){
+        int v = g[i][j];
+        if (v == 0 ){
+            cout << "ddd ";
+        }//cout << "i: " << i << endl;
+        //cout << "j: " << j << endl;
+        //cout << "v: " << g[i][j] << endl;
+        if (!vertices[v].explored){
+            DFS(g, j);
+        }
+    }
+    ++t;
+    vertices[i].finishingTime = t;
 }
