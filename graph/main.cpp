@@ -22,11 +22,10 @@ int s = NULL;//global veraible to track the source vertex from which DFS was ini
 vector<Vertex> vertices(10);
 vector<int> finishing(10);
 
-void DFS_Loop(vector<vector<int>>&, int);
-void DFS(vector<vector<int>>&, size_t);
-vector<vector<int>> createGraph(fstream&);
+void DFS_Loop(vector<vector<int>>, int);
+void DFS(vector<vector<int>>, int);
 
-int main(int argc, const char * argv[]) {
+int main() {
     
     fstream f {"list.txt", ios::in | ios::binary}; //open file for input
     
@@ -34,7 +33,7 @@ int main(int argc, const char * argv[]) {
         cout << "File could not be opened\n";
         return 9;
     }
-
+    
     int numVertices = 10;
     int head;
     int tail;
@@ -47,6 +46,8 @@ int main(int argc, const char * argv[]) {
         g_rev[head].push_back(tail);//create edge
     }
     
+    f.close();
+
     for (int i = 0; i < numVertices; ++i){
         vertices[i].explored = false;
     }
@@ -56,28 +57,39 @@ int main(int argc, const char * argv[]) {
     for (int i = 0; i < numVertices; ++i){
         vertices[i].explored = false;
     }
+    t = 0;
     
     DFS_Loop(g, 2);
+    
+    fstream oF {"SSC.txt", ios:: out};
+    
+    for (int i = 1; i < numVertices; ++i){
+        oF << i << "\t" << vertices[i].leader << endl;
+    }
+    
+    oF.close();
 
     return 0;
 }
 
-void DFS_Loop(vector<vector<int>>& g, int pass) {
-    for(size_t i = g.size() - 1; i >= 1; --i){
-        int node = (pass == 1 ? i : finishing[i]);
+void DFS_Loop(vector<vector<int>> g, int pass) {
+    for(int i = int(g.size()) - 1; i >= 1; --i){
+        int node;
+        node = (pass == 1 ? i : finishing[i]);
 
-        if (vertices[node].explored){
+        if (!vertices[node].explored){
             s = node;
             DFS(g, node);
         }
     }
 }
 
-void DFS(vector<vector<int>>& g, size_t i){
+void DFS(vector<vector<int>> g, int i){
     vertices[i].explored = true;
     vertices[i].leader = s;
-    for (int j = 0; j < g[i].size(); ++j){
-        int v = g[i][j];
+    for (int j = 0; j < int(g[i].size()); ++j){
+        int v;
+        v = g[i][j];
 
         if (!vertices[v].explored){
             DFS(g, v);
@@ -85,5 +97,4 @@ void DFS(vector<vector<int>>& g, size_t i){
     }
     ++t;
     finishing[t] = i;//capture finishing time of each node
-    //vertices[i].finishingTime = t;
 }
